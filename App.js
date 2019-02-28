@@ -7,7 +7,8 @@ import {
   TextInput,
   Dimensions,
   Platform,
-  ScrollView
+  ScrollView,
+  AsyncStorage,
 } from 'react-native';
 import Todo from './Todo'
 import {AppLoading} from 'expo';
@@ -57,7 +58,8 @@ export default class App extends React.Component {
                 key={toDo.id} {...toDo} 
                 deleteToDo={this._deleteToDo}
                 uncompleteToDo= {this._uncompleteToDo}
-                completeToDo ={this._completeToDo} 
+                completeToDo ={this._completeToDo}
+                updateToDo ={this._updateToDo}
                 />)}
           </ScrollView>
         </View>
@@ -145,6 +147,27 @@ export default class App extends React.Component {
       }
       return { ...newState };
     })
+  }
+
+  _updateToDo= (id,text) =>{
+    this.setState(prevState => {
+      const newState = {
+        ...prevState,
+        toDos: {
+          ...prevState.toDos,
+          [id]: {
+            ...prevState.toDos[id],
+            isCompleted: false,
+            text:text,
+          }
+        }
+      }
+      return { ...newState };
+    })
+  }
+
+  _saveToDos = (newToDos) => {
+    const saveToDos = 
   }
 
 
