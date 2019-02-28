@@ -10,35 +10,55 @@ import {
   ScrollView
 } from 'react-native';
 import Todo from './Todo'
+import {AppLoading} from 'expo';
+import uuidv1 from 'uuid/v1';
 
 const {width,height} = Dimensions.get("window");
 
 export default class App extends React.Component {
 
   state= {
-    newToDo: ""
+    newToDo: "",
+    loadedToDos: false,
+    toDos:  {}
   };
 
+  componentDidMount = () =>{
+    this._loadToDos();
+  }
+
   render() {
-    const { newToDo } = this.state;
+    const { newToDo,loadedToDos,toDos } = this.state;
+    if (!loadedToDos) {
+      return <AppLoading/>
+    }
+    // 상태바의 색깔을 설정해서 조절이 가능하며
 
     return (
+      
       <View style={styles.container}>
         <StatusBar barStyle = "light-content"/>
-        <Text style={styles.title}>Kawai To do</Text>
+        <Text style={styles.title}>나의 할 일 앱</Text>
 
         <View style={styles.card}>
           <TextInput 
             style={styles.input} 
-            placeholder={"New To Do"} 
+            placeholder={"할 일을 입력하세요!"} 
             value={newToDo}
             onChangeText = {this._controlNewToDo}
             placeholderTextColor={"#999"}
             returnKeyType={"done"}
             autoCorrect={false}
+            onSubmitEditing={this._addToDo}
             />
           <ScrollView contentContainerStyle={styles.toDos}>
-            <Todo text={"Hello I'm Here"}></Todo>
+            {Object.values(toDos).map(toDo => 
+                <Todo 
+                key={toDo.id} {...toDo} 
+                deleteToDo={this._deleteToDo}
+                uncompleteToDo= {this._uncompleteToDo}
+                completeToDo ={this._completeToDo} 
+                />)}
           </ScrollView>
         </View>
       </View>
@@ -49,6 +69,85 @@ export default class App extends React.Component {
       newToDo: text
     })
   }
+
+  _loadToDos = () => {
+    this.setState({
+      loadedToDos:true 
+    });
+  };
+  
+  _addToDo = () =>{
+    const{ newToDo} = this.state;
+    
+    if(newToDo != ""){
+        this.setState(prevState=>{
+          const ID = uuidv1();
+          const newToDoObject = {
+            [ID]: {
+              id: ID,
+              isCompleted: false,
+              text: newToDo,
+              createdAt: Date.now()
+            }
+          }
+          const newState= {
+            ...prevState,
+            newToDo: "",
+            toDos: {
+              ...prevState.toDos,
+              ...newToDoObject
+            }
+          }
+          return {...newState};
+        })
+    }
+  }
+
+  _deleteToDo = (id) =>{
+    this.setState(prevState => {
+      const toDos = prevState.toDos;
+      delete toDos[id];
+      const newState = {
+        ...prevState,
+        ...toDos
+      };
+      return {...newState};
+    })
+  } 
+
+  _uncompleteToDo = (id) => {
+    this.setState(prevState=> {
+      const newState = {
+        ...prevState,
+        toDos:  {
+          ...prevState.toDos,
+        [id]: {
+          ...prevState.toDos[id],
+          isCompleted: false
+        }  
+      }
+      }
+      return {...newState};
+    })
+  }
+
+  _completeToDo = (id) => {
+    this.setState(prevState => {
+      const newState = {
+        ...prevState,
+        toDos: {
+          ...prevState.toDos,
+          [id]: {
+            ...prevState.toDos[id],
+            isCompleted: true
+          }
+        }
+      }
+      return { ...newState };
+    })
+  }
+
+
 
 }
 
